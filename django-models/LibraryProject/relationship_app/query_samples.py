@@ -11,5 +11,5 @@ def list_all_books_in_library(library_name):
     return library.books.all()
     
 def get_librarian_of_library(library_name):
-    librarian=models.Librarian.objects.get(library__name=library_name)
-    return librarian.name
+    library = models.Library.objects.get(name=library_name)
+    return library.librarian.name 
