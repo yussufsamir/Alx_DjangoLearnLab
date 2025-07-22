@@ -25,10 +25,10 @@ class LibraryDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context["books"] = self.object.books.all()
         return context
-class CustomLoginView(LoginView):
+class LoginView(LoginView):
     template_name = "relationship_app/login.html"
 
-class CustomLogoutView(LogoutView):
+class LogoutView(LogoutView):
     template_name = "relationship_app/logout.html"
 class RegisterView(View):
     def get(self, request):
