@@ -30,7 +30,7 @@ class LoginView(LoginView):
 
 class LogoutView(LogoutView):
     template_name = "relationship_app/logout.html"
-class Register(View):
+class RegisterView(View):
     def get(self, request):
         form = UserCreationForm()
         return render(request, "relationship_app/register.html", {"form": form})
