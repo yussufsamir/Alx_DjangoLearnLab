@@ -24,3 +24,7 @@ editors_group.permissions.add(edit_permission, create_permission)
 def book_list(request):
     books = Book.objects.all()
     return render(request, 'books/book_list.html', {'books': books})
+books = Book.objects.filter(author__icontains=user_input)
+form = BookForm(request.POST)
+if form.is_valid():
+    form.save()
