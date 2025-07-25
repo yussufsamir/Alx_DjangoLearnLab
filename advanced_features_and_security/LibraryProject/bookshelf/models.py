@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser , BaseUserManager
+from django.contrib.auth.models import Permission
 
 # Create your models here.
 class Book(models.Model):
@@ -23,7 +24,15 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, username, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        return self.create_user(username, email, password, **extra_fields)    
+        return self.create_user(username, email, password, **extra_fields)
+
+    class Meta:
+        permissions = [
+            ('can_view', 'Can view article'),
+            ('can_create', 'Can create article'),
+            ('can_edit', 'Can edit article'),
+            ('can_delete', 'Can delete article'),
+        ]
 
 
 class CustomUser(AbstractUser):
