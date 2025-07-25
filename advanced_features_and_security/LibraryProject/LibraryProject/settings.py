@@ -47,6 +47,19 @@ INSTALLED_APPS = [
     'relationship_app',    # Custom app for managing relationships
     'csp',
 ]
+# Redirect all HTTP traffic to HTTPS
+SECURE_SSL_REDIRECT = True  # ✅ Must be True in production
+
+# Instruct browsers to enforce HTTPS for this site
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Cover subdomains
+SECURE_HSTS_PRELOAD = True  # Allow preloading in browsers
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent MIME-type guessing
+SECURE_BROWSER_XSS_FILTER = True  # Activate browser XSS filter
+X_FRAME_OPTIONS = 'DENY'  # Block clickjacking via iframes
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
