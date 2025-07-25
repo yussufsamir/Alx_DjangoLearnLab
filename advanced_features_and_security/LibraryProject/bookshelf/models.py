@@ -10,6 +10,14 @@ class Book(models.Model):
     publication_year  = models.IntegerField()
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
+    class Meta:
+        permissions = [
+            ('can_view', 'Can view article'),
+            ('can_create', 'Can create article'),
+            ('can_edit', 'Can edit article'),
+            ('can_delete', 'Can delete article'),
+        ]
+
  
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, email, password=None, **extra_fields):
@@ -26,13 +34,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(username, email, password, **extra_fields)
 
-    class Meta:
-        permissions = [
-            ('can_view', 'Can view article'),
-            ('can_create', 'Can create article'),
-            ('can_edit', 'Can edit article'),
-            ('can_delete', 'Can delete article'),
-        ]
+    
 
 
 class CustomUser(AbstractUser):
