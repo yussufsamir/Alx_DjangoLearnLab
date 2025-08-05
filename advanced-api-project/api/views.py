@@ -5,6 +5,7 @@ from .models import Book #replace with your working model
 from .serializers import BookSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
+from django_filters import rest_framework
 
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 # Create your views here.
