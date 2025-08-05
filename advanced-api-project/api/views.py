@@ -4,7 +4,7 @@ from .models import Book #replace with your working model
 from .serializers import BookSerializer
 from rest_framework.response import Response
 
-from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated
 # Create your views here.
 class BookCreateView(generics.CreateAPIView):
     queryset = Book.objects.all()
