@@ -4,12 +4,15 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from api.models import Book, Author
 
+
+
+
+
 class BookAPITestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
-
         self.author = Author.objects.create(name='George Orwell')
         self.book = Book.objects.create(title='1984', publication_year=1949, author=self.author)
 
