@@ -1,11 +1,12 @@
-from django.shortcuts import redirect, render 
+from django.shortcuts import get_object_or_404, redirect, render 
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .forms import UserUpdateForm, ProfileUpdateForm
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm,CommentForm
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import Post
+from .models import Post,Profile,comment
+from django.urls import reverse_lazy
 
 # Create your views here.
 
@@ -16,26 +17,28 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user) 
-            return redirect("base")  
+            return redirect("profile")  
     else:
         form = CustomUserCreationForm()
     return render(request, "blog/register.html", {"form": form})
 
 @login_required
 def profile(request):
+    profile_obj, _ = Profile.objects.get_or_create(user=request.user)
     if request.method == "POST":
-        update_form=UserUpdateForm(request.POST, instance=request.user)
-        profile_update=ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
-        if update_form.is_valid() and profile_update.is_valid():
-            update_form.save()
-            profile_update.save()
-            return redirect("profile")
-        else:
-            update_form = UserUpdateForm(instance=request.user)
-            profile_update = ProfileUpdateForm(instance=request.user.profile)
-    context = {'u_form': update_form, 'p_form': profile_update}
-    return render(request, 'blog/profile.html', context)
+        u_form = UserUpdateForm(request.POST, instance=request.user)
+        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile_obj)
 
+        if u_form.is_valid() and p_form.is_valid():
+            u_form.save()
+            p_form.save()
+            return redirect("profile")  
+       
+    else:
+        u_form = UserUpdateForm(instance=request.user)
+        p_form = ProfileUpdateForm(instance=request.user.profile)
+
+    return render(request, "blog/profile.html", {"u_form": u_form, "p_form": p_form})
 class PostListView(ListView):
     model = Post
     template_name = 'blog/post_list.html'
@@ -46,11 +49,17 @@ class PostListView(ListView):
 class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['comments'] = comment.objects.filter(post=self.object).order_by('-created_at')
+        context['comment_form'] = CommentForm()
+        return context
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     fields = ['title', 'content']  
     template_name = 'blog/post_form.html'
+    success_url = reverse_lazy("post-list")
     
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -59,7 +68,8 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     fields = ['title', 'content']
-    template_name = 'post_form.html'
+    template_name = 'blog/post_form.html'
+    success_url = reverse_lazy("post-list")
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -71,7 +81,38 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
-    template_name = 'post_confirm_delete.html'
+    template_name = 'blog/post_confirm_delete.html'
+    success_url=reverse_lazy("post-list")
+
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    def post(self, request, *args, post_id):
+        post = get_object_or_404(Post, pk=post_id)
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.author = request.user
+            comment.save()
+        return redirect('blog/post_detail', pk=post.pk) 
+
+class CommentUpdateView(LoginRequiredMixin, UpdateView):
+    model = comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def test_func(self):
+        return self.request.user == self.get_object().author
+
+class CommentDeleteView(LoginRequiredMixin, DeleteView):
+    model = comment
+    template_name = 'blog/comment_confirm_delete.html'
 
     def test_func(self):
         post = self.get_object()
