@@ -5,7 +5,7 @@ from .forms import UserUpdateForm, ProfileUpdateForm
 from .forms import CustomUserCreationForm,CommentForm
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import Post,Profile,comment
+from .models import Post,Profile,Comment
 from django.urls import reverse_lazy
 
 # Create your views here.
@@ -51,7 +51,7 @@ class PostDetailView(DetailView):
     template_name = 'blog/post_detail.html'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['comments'] = comment.objects.filter(post=self.object).order_by('-created_at')
+        context['comments'] = Comment.objects.filter(post=self.object).order_by('-created_at')
         context['comment_form'] = CommentForm()
         return context
 
@@ -100,7 +100,7 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         return redirect('blog/post_detail', pk=post.pk) 
 
 class CommentUpdateView(LoginRequiredMixin, UpdateView):
-    model = comment
+    model = Comment
     form_class = CommentForm
     template_name = 'blog/comment_form.html'
     def form_valid(self, form):
@@ -111,7 +111,7 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
         return self.request.user == self.get_object().author
 
 class CommentDeleteView(LoginRequiredMixin, DeleteView):
-    model = comment
+    model = Comment
     template_name = 'blog/comment_confirm_delete.html'
 
     def test_func(self):
