@@ -2,12 +2,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .forms import UserUpdateForm, ProfileUpdateForm
-from .forms import CustomUserCreationForm,CommentForm
+from .forms import CustomUserCreationForm,CommentForm,PostForm
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Post,Profile,Comment
+from django.db.models import Q
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormMixin
+from taggit.models import Tag
 
 # Create your views here.
 
@@ -71,7 +73,7 @@ class PostDetailView(FormMixin,DetailView):
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
-    fields = ['title', 'content']  
+    form_class = PostForm
     template_name = 'blog/post_form.html'
     success_url = reverse_lazy("post-list")
     
@@ -81,7 +83,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
-    fields = ['title', 'content']
+    form_class = PostForm
     template_name = 'blog/post_form.html'
     success_url = reverse_lazy("post-list")
 
@@ -134,4 +136,32 @@ class CommentDeleteView(LoginRequiredMixin, DeleteView):
         return self.request.user == post.author
     def get_success_url(self):
         return reverse_lazy('post-detail', kwargs={'pk': self.object.pk})
+    
 
+def search_posts(request):
+    query = request.GET.get('q')
+    results = Post.objects.filter(
+        Q(title__icontains=query) |
+        Q(content__icontains=query) |
+        Q(tags__name__icontains=query)
+    ).distinct()
+    return render(request, 'blog/search_results.html', {'results': results, 'query': query})
+
+def add_tag(request, post_id):
+    if request.method == "POST":
+        tag_name = request.POST.get("tag")
+        post = Post.objects.get(id=post_id)
+        post.tags.add(tag_name)
+        return redirect("post_detail", pk=post_id)
+
+class TaggedPostListView(ListView):
+    template_name = 'blog/tagged_posts.html'
+    context_object_name = 'posts'
+
+    def get_queryset(self):
+        return Post.objects.filter(tags__name=self.kwargs['tag'])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag'] = self.kwargs['tag']
+        return context

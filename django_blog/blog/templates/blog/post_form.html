@@ -3,7 +3,22 @@
   <h1>{% if form.instance.pk %}Edit{% else %}Create{% endif %} Post</h1>
   <form method="POST">
     {% csrf_token %}
-    {{ form.as_p }}
+
+    <p>
+      {{ form.title.label_tag }}<br>
+      {{ form.title }}
+    </p>
+
+    <p>
+      {{ form.content.label_tag }}<br>
+      {{ form.content }}
+    </p>
+
+    <p id="tag-form">
+      {{ form.tags.label_tag }}<br>
+      {{ form.tags }}
+    </p>
+
     <button type="submit">Save</button>
   </form>
 {% endblock %}
