@@ -154,14 +154,15 @@ def add_tag(request, post_id):
         post.tags.add(tag_name)
         return redirect("post_detail", pk=post_id)
 
-class TaggedPostListView(ListView):
-    template_name = 'blog/tagged_posts.html'
-    context_object_name = 'posts'
+
+class PostByTagListView(ListView):
+    template_name = "blog/tagged_posts.html"
+    context_object_name = "posts"
 
     def get_queryset(self):
-        return Post.objects.filter(tags__name=self.kwargs['tag'])
+        return Post.objects.filter(tags__slug=self.kwargs["tag_slug"])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['tag'] = self.kwargs['tag']
+        context["tag"] = self.kwargs["tag_slug"]
         return context
