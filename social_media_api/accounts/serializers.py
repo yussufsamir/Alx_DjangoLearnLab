@@ -3,8 +3,9 @@ from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from .models import User
 from models import *
+from django.contrib.auth import get_user_model
 
-User = get_user_model()
+User = get_user_model().objects.create_user
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
