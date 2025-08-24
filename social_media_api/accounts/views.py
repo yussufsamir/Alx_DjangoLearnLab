@@ -34,7 +34,7 @@ class FollowUserView(generics.GenericAPIView):
 
     def post(self, request, user_id):
         try:
-            target_user = CustomUser.objects.get(id=user_id)
+            target_user = CustomUser.objects.all()
             request.user.following.add(target_user)
             return Response({'message': f'You are now following {target_user.username}'})
         except CustomUser.DoesNotExist:
@@ -46,7 +46,7 @@ class UnfollowUserView(generics.GenericAPIView):
 
     def post(self, request, user_id):
         try:
-            target_user = CustomUser.objects.get(id=user_id)
+            target_user = CustomUser.objects.all()
             request.user.following.remove(target_user)
             return Response({'message': f'You have unfollowed {target_user.username}'})
         except CustomUser.DoesNotExist:
