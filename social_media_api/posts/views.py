@@ -42,8 +42,8 @@ class LikePostView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        post = Post.objects.get(pk=pk)
-        like, created =  generics.get_object_or_404(Like, pk=pk)
+        post = generics.get_object_or_404(Post, pk=pk)
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
         if created:
             Notification.objects.create(
                 recipient=post.author,
@@ -59,9 +59,16 @@ class UnlikePostView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
+        post = generics.get_object_or_404(Post, pk=pk)
         try:
-            like = generics.get_object_or_404(Like, pk=pk)
+            like = generics.get_object_or_404(Like, user=request.user, post=post)
             like.delete()
+            Notification.objects.create(
+                recipient=post.author,
+                actor=request.user,
+                verb='unliked',
+                target=post
+            )
             return Response({'message': 'Post unliked'})
         except Like.DoesNotExist:
             return Response({'message': 'You haven’t liked this post'}, status=400)
