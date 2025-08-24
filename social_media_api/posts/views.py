@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Post,Comment
+
+from social_media_api.notifications.models import Notification
+from .models import Like, Post,Comment
 from .serializers import PostSerializer,CommentSerializer
 from .permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import api_view, permission_classes
@@ -35,3 +37,31 @@ class FeedView(APIView):
         posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
+    
+class LikePostView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        post = Post.objects.get(pk=pk)
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
+        if created:
+            Notification.objects.create(
+                recipient=post.author,
+                actor=request.user,
+                verb='liked',
+                target=post
+            )
+            return Response({'message': 'Post liked'})
+        return Response({'message': 'Already liked'}, status=400)
+    
+
+class UnlikePostView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            like = Like.objects.get(user=request.user, post_id=pk)
+            like.delete()
+            return Response({'message': 'Post unliked'})
+        except Like.DoesNotExist:
+            return Response({'message': 'You haven’t liked this post'}, status=400)
