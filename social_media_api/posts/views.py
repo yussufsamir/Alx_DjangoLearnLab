@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from accounts.models import *
-from rest_framework import permissions
+from rest_framework import permissions,generics
 from rest_framework.views import APIView
 
 # Create your views here.
@@ -60,7 +60,7 @@ class UnlikePostView(APIView):
 
     def post(self, request, pk):
         try:
-            like = Like.objects.get(user=request.user, post_id=pk)
+            like = generics.get_object_or_404(Like, pk=pk)
             like.delete()
             return Response({'message': 'Post unliked'})
         except Like.DoesNotExist:
